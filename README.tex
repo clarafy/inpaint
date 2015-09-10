@@ -1,0 +1,71 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage, graphicx, psfrag, amsmath, amsfonts, verbatim, alltt}
+\usepackage[small, bf]{caption}
+
+\newcommand{\nwc}{\newcommand}
+\nwc{\mb}{\mathbf}
+\nwc{\mc}{\mathcal}
+\nwc{\tb}{\textbf}
+\nwc{\ti}{\textit}
+\nwc{\tsc}{\textsc}
+\nwc{\tu}{\underline}
+\nwc{\beq}{\begin{eqnarray}}
+\nwc{\eeq}{\end{eqnarray}}
+\nwc{\beqn}{\begin{eqnarray*}}
+\nwc{\eeqn}{\end{eqnarray*}}
+\nwc{\disp}{\displaystyle}
+
+\nwc{\ones}{\mathbf 1}
+\nwc{\zeros}{\mathbf 0}
+\nwc{\reals}{{\mbox{\bf R}}}
+\nwc{\integers}{{\mbox{\bf Z}}}
+\nwc{\symm}{{\mbox{\bf S}}}  % symmetric matrices
+
+\nwc{\nullspace}{{\mathcal N}}
+\nwc{\range}{{\mathcal R}}
+\nwc{\Rank}{\mathop{\bf Rank}}
+\nwc{\Tr}{\mathop{\bf Tr}}
+\nwc{\diag}{\mathop{\bf diag}}
+
+\nwc{\Expect}{\mathop{\bf E{}}}
+\nwc{\Prob}{\mathop{\bf Prob}}
+\nwc{\Co}{{\mathop {\bf Co}}} % convex hull
+\nwc{\dist}{\mathop{\bf dist{}}}
+\nwc{\bd}{\mathop{\bf bd}} % epigraph
+\nwc{\epi}{\mathop{\bf epi}} % epigraph
+\nwc{\Vol}{\mathop{\bf vol}}
+\nwc{\dom}{\mathop{\bf dom}} % domain
+\nwc{\prox}{\mathop{\bf prox}}
+\nwc{\sign}{\mathop{\bf sign}}
+\mathchardef\mhyphen="2D
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+
+\title{\texttt{inpaint}: Image in-painting via $\ell$-2 norm total variation minimization}
+\author{Clara Fannjiang (\texttt{clarafj@stanford.edu})}
+
+\begin{document}
+\maketitle
+
+To find a sub-gradient $G \in \partial \mb{tv}(U)$ for 
+$$
+	\mb{tv}(U) = \disp \sum_{i = 1}^{m - 1} \sum_{j = 1}^{n - 1} \left \| \begin{bmatrix} U_{i + 1, j} - U_{i, j} \\ U_{i, j + 1} - U_{i, j} \end{bmatrix} \right \|_2,
+$$
+we note that for $(i, j)$ where all surrounding pixels $(i \pm 1, j \pm 1)$ exist, only the summands involving $(i \pm 1, j \pm 1)$ depend on $(i, j)$. That is, 
+$$
+	\begin{array}{ll}
+	G_{ij} & = \disp \frac{\partial}{\partial U_{i, j}} \mb{tv}(U) \\
+	& = \disp \frac{\partial}{\partial U_{i, j}} \left(\left \| \begin{bmatrix} U_{i + 1, j} - U_{i, j} \\ U_{i, j + 1} - U_{i, j} \end{bmatrix} \right \|_2 + 
+	\left \| \begin{bmatrix} U_{i, j} - U_{i - 1, j} \\ U_{i - 1, j + 1} - U_{i - 1, j} \end{bmatrix} \right \|_2 +
+	\left \| \begin{bmatrix} U_{i + 1, j - 1} - U_{i, j - 1} \\ U_{i, j} - U_{i, j - 1} \end{bmatrix} \right \|_2 \right) \\
+	& = \disp \frac{\partial}{\partial U_{i, j}} \left(\sqrt{(U_{i + 1, j} - U_{i, j})^2 + (U_{i, j + 1} - U_{i, j})^2} + \sqrt{(U_{i, j} - U_{i - 1, j})^2 +  (U_{i - 1, j + 1} - U_{i - 1, j})^2} + \right. \\
+	& \left. \sqrt{(U_{i + 1, j - 1} - U_{i, j - 1})^2 + (U_{i, j} - U_{i, j - 1})^2} \right) \\
+	
+	& = (U_{i + 1, j} + U_{i, j + 1} - 2 U_{i, j} ) \Big/ \left \| \begin{bmatrix} U_{i + 1, j} - U_{i, j} \\ U_{i, j + 1} - U_{i, j} \end{bmatrix} \right \|_2 + (U_{i, j} - U_{i - 1, j}) \Big/ \left \| \begin{bmatrix} U_{i, j} - U_{i - 1, j} \\ U_{i - 1, j + 1} - U_{i - 1, j} \end{bmatrix} \right \|_2 + \\
+	& (U_{i, j} - U_{i, j - 1}) \Big/ \left \| \begin{bmatrix} U_{i + 1, j - 1} - U_{i, j - 1} \\ U_{i, j} - U_{i, j - 1} \end{bmatrix} \right \|_2. \\
+	\end{array}
+$$
+The total variation is not differentiable with respect to $U_{i, j}$ if and only if any of the norm denominators above is zero, \ti{i.e.}, $U_{i, j} = U_{i - 1, j}$ and $U_{i - 1, j + 1} = U_{i - 1, j}$, $U_{i + 1, j - 1} = U_{i, j - 1}$ and  $U_{i, j} = U_{i, j - 1}$, or $U_{i + 1, j} = U_{i, j}$ and $U_{i, j + 1} = U_{i, j}$. In these cases, the total variation will be increased if $U_{i, j}$ is changed, so we can set $G_{ij} = 0$. 
+
+\end{document}
