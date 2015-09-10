@@ -1,7 +1,6 @@
 *pyc
 demos/.ipynb_checkpoints/*
 demos/test.ipynb
-demos/*.gif
 README.aux
 README.log
 README.md

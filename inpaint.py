@@ -9,6 +9,15 @@ from numpy.linalg import norm
 
 
 
+def l1tv(image):
+    """
+    Computes the L1-norm total variation and a subgradient of the image
+    """
+
+    pass
+
+
+
 def l2tv(image):
 
     """
@@ -27,7 +36,7 @@ def l2tv(image):
     # Pixel value differences across rows
     row_diff = image[1 :, : -1] - image[: -1, : -1]
 
-    # Compute the L2-norm total variation.
+    # Compute the L2-norm total variation of the image
     diff_norms = norm(vstack((col_diff.T.flatten(), row_diff.T.flatten())).T, ord=2, axis=1)
     val = sum(diff_norms) / ((m - 1) * (n - 1))
 
@@ -49,7 +58,7 @@ def make_mask(shape, known_coords):
 
     mask = zeros(shape)
     mask[known_coords] = 1
-    return mask.astype(bool)
+    return mask.astype(bool) # necessary? probably slower...
 
 
 
@@ -60,7 +69,7 @@ class Inpaint(object):
 
     Parameters
     ==========
-    alpha : float, optional, default = 400
+    alpha : float, optional, default = 200
         Numerator parameter in square-summable-but-not-summable (SSBNS...
         or better non-lame name?) step size
 
@@ -140,6 +149,11 @@ class Inpaint(object):
                     sys.stdout.flush()
 
             # Update iterate by stepping in negative subgradient direction.
+
+            # TODO: Try searching for step size that produces sufficient decrease
+            # ("Armijo rule along the projection arc" in Bertsekas (1999),
+            # using shortcut condition in Lin (2007) Eq. (17)).
+
             painted_prev = painted
             painted = painted - (self.alpha / (self.beta + n_iter)) * subgrad
 
@@ -166,6 +180,13 @@ class Inpaint(object):
 
 
     def transform(self, image, known_coords):
+
+        # TODO: Check for scaling in [0, 1] vs. [0, 255] and set
+        # np.clip() parameter in _l2tv() correspondingly
+
+        # Implement L1-norm total variation for kicks? Will probably
+        # produce much blockier images because of sparser pixel differences,
+        # but maybe that works better for cartoons, text.
 
         """
         Inpaints image given unknown pixel coordinates
