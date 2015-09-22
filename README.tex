@@ -48,24 +48,42 @@
 \begin{document}
 \maketitle
 
-To find a sub-gradient $G \in \partial \mb{tv}(U)$ for 
+\section{Problem set-up}
+
+Say we've got an image $X \in \reals^{m \times n}$ whose pixel values $X_{i, j}$ we know for indices $(i, j) \in \mathcal{K}$. To recover the values of the missing pixels whose indices are not in $\mathcal{K}$, we leverage the assumption that natural images have small \ti{total variation}, which quantifies local deviations between neighboring pixels. We want a reconstruction $Y$ that minimizes the $\ell_2$ total variation, under the constraint that we preserve the known pixel values:
 $$
-	\mb{tv}(U) = \disp \sum_{i = 1}^{m - 1} \sum_{j = 1}^{n - 1} \left \| \begin{bmatrix} U_{i + 1, j} - U_{i, j} \\ U_{i, j + 1} - U_{i, j} \end{bmatrix} \right \|_2,
+\begin{array}{rl}
+	\text{minimize} & \disp \sum_{i = 1}^{m - 1} \sum_{i = 1}^{n - 1} \left \| \left[ 
+		\begin{array}{c}
+		Y_{i + 1, j} - Y_{i, j} \\
+		Y_{i, j + 1} - Y_{i, j}
+		\end{array}
+		\right] \right \|_2 \\
+	\text{subject to} & Y_{i, j} = X_{i, j}, \; \forall \, (i, j) \in \mathcal{K}
+\end{array}
+$$
+
+\section{Subgradient}
+We'll use the projected subgradient method to solve the problem. To find a sub-gradient $G \in \partial \mb{tv}(Y)$ for 
+$$
+	\mb{tv}(Y) = \disp \sum_{i = 1}^{m - 1} \sum_{j = 1}^{n - 1} \left \| \begin{bmatrix} Y_{i + 1, j} - Y_{i, j} \\ Y_{i, j + 1} - Y_{i, j} \end{bmatrix} \right \|_2,
 $$
 we note that for $(i, j)$ where all surrounding pixels $(i \pm 1, j \pm 1)$ exist, only the summands involving $(i \pm 1, j \pm 1)$ depend on $(i, j)$. That is, 
 $$
 	\begin{array}{ll}
-	G_{ij} & = \disp \frac{\partial}{\partial U_{i, j}} \mb{tv}(U) \\
-	& = \disp \frac{\partial}{\partial U_{i, j}} \left(\left \| \begin{bmatrix} U_{i + 1, j} - U_{i, j} \\ U_{i, j + 1} - U_{i, j} \end{bmatrix} \right \|_2 + 
-	\left \| \begin{bmatrix} U_{i, j} - U_{i - 1, j} \\ U_{i - 1, j + 1} - U_{i - 1, j} \end{bmatrix} \right \|_2 +
-	\left \| \begin{bmatrix} U_{i + 1, j - 1} - U_{i, j - 1} \\ U_{i, j} - U_{i, j - 1} \end{bmatrix} \right \|_2 \right) \\
-	& = \disp \frac{\partial}{\partial U_{i, j}} \left(\sqrt{(U_{i + 1, j} - U_{i, j})^2 + (U_{i, j + 1} - U_{i, j})^2} + \sqrt{(U_{i, j} - U_{i - 1, j})^2 +  (U_{i - 1, j + 1} - U_{i - 1, j})^2} + \right. \\
-	& \left. \sqrt{(U_{i + 1, j - 1} - U_{i, j - 1})^2 + (U_{i, j} - U_{i, j - 1})^2} \right) \\
+	G_{ij} & = \disp \frac{\partial}{\partial Y_{i, j}} \mb{tv}(Y) \\
+	& = \disp \frac{\partial}{\partial Y_{i, j}} \left(\left \| \begin{bmatrix} Y_{i + 1, j} - Y_{i, j} \\ Y_{i, j + 1} - Y_{i, j} \end{bmatrix} \right \|_2 + 
+	\left \| \begin{bmatrix} Y_{i, j} - Y_{i - 1, j} \\ Y_{i - 1, j + 1} - Y_{i - 1, j} \end{bmatrix} \right \|_2 +
+	\left \| \begin{bmatrix} Y_{i + 1, j - 1} - Y_{i, j - 1} \\ Y_{i, j} - Y_{i, j - 1} \end{bmatrix} \right \|_2 \right) \\
+	& = \disp \frac{\partial}{\partial Y_{i, j}} \left(\sqrt{(Y_{i + 1, j} - Y_{i, j})^2 + (Y_{i, j + 1} - Y_{i, j})^2} + \sqrt{(Y_{i, j} - Y_{i - 1, j})^2 +  (Y_{i - 1, j + 1} - Y_{i - 1, j})^2} + \right. \\
+	& \left. \sqrt{(Y_{i + 1, j - 1} - Y_{i, j - 1})^2 + (Y_{i, j} - Y_{i, j - 1})^2} \right) \\
 	
-	& = (U_{i + 1, j} + U_{i, j + 1} - 2 U_{i, j} ) \Big/ \left \| \begin{bmatrix} U_{i + 1, j} - U_{i, j} \\ U_{i, j + 1} - U_{i, j} \end{bmatrix} \right \|_2 + (U_{i, j} - U_{i - 1, j}) \Big/ \left \| \begin{bmatrix} U_{i, j} - U_{i - 1, j} \\ U_{i - 1, j + 1} - U_{i - 1, j} \end{bmatrix} \right \|_2 + \\
-	& (U_{i, j} - U_{i, j - 1}) \Big/ \left \| \begin{bmatrix} U_{i + 1, j - 1} - U_{i, j - 1} \\ U_{i, j} - U_{i, j - 1} \end{bmatrix} \right \|_2. \\
+	& = (Y_{i + 1, j} + Y_{i, j + 1} - 2 Y_{i, j} ) \Big/ \left \| \begin{bmatrix} Y_{i + 1, j} - Y_{i, j} \\ Y_{i, j + 1} - Y_{i, j} \end{bmatrix} \right \|_2 + (Y_{i, j} - Y_{i - 1, j}) \Big/ \left \| \begin{bmatrix} Y_{i, j} - Y_{i - 1, j} \\ Y_{i - 1, j + 1} - Y_{i - 1, j} \end{bmatrix} \right \|_2 + \\
+	& (Y_{i, j} - Y_{i, j - 1}) \Big/ \left \| \begin{bmatrix} Y_{i + 1, j - 1} - Y_{i, j - 1} \\ Y_{i, j} - Y_{i, j - 1} \end{bmatrix} \right \|_2. \\
 	\end{array}
 $$
-The total variation is not differentiable with respect to $U_{i, j}$ if and only if any of the norm denominators above is zero, \ti{i.e.}, $U_{i, j} = U_{i - 1, j}$ and $U_{i - 1, j + 1} = U_{i - 1, j}$, $U_{i + 1, j - 1} = U_{i, j - 1}$ and  $U_{i, j} = U_{i, j - 1}$, or $U_{i + 1, j} = U_{i, j}$ and $U_{i, j + 1} = U_{i, j}$. In these cases, the total variation will be increased if $U_{i, j}$ is changed, so we can set $G_{ij} = 0$. 
+The total variation is not differentiable with respect to $Y_{i, j}$ if and only if any of the norm denominators above is zero, \ti{i.e.}, $Y_{i, j} = Y_{i - 1, j}$ and $Y_{i - 1, j + 1} = Y_{i - 1, j}$, $Y_{i + 1, j - 1} = Y_{i, j - 1}$ and  $Y_{i, j} = Y_{i, j - 1}$, or $Y_{i + 1, j} = Y_{i, j}$ and $Y_{i, j + 1} = Y_{i, j}$. In these cases, the total variation will be increased if $Y_{i, j}$ is changed, so we can set $G_{ij} = 0$. 
+
+To project onto the feasible set, we just set all pixels in $\mathcal{K}$ to their known values.
 
 \end{document}

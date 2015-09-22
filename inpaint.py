@@ -9,9 +9,9 @@ from numpy.linalg import norm
 
 
 
-def l1tv(image):
+def l22tv(image):
     """
-    Computes the L1-norm total variation and a subgradient of the image
+    Computes the L2-norm-squared total variation and a subgradient of the image
     """
 
     pass
@@ -184,9 +184,8 @@ class Inpaint(object):
         # TODO: Check for scaling in [0, 1] vs. [0, 255] and set
         # np.clip() parameter in _l2tv() correspondingly
 
-        # Implement L1-norm total variation for kicks? Will probably
-        # produce much blockier images because of sparser pixel differences,
-        # but maybe that works better for cartoons, text.
+        # Implement L2-norm-squared total variation for kicks? Should converge faster
+        # since quadratic, same optimum.
 
         """
         Inpaints image given unknown pixel coordinates
